@@ -569,7 +569,7 @@ protected:
 			// compose and publish transform for tf package
 			geometry_msgs::TransformStamped pose;
 			// compose header
-			pose.header.stamp = m_offset_time;
+			pose.header.stamp = m_offset_time + ros::Duration(0.025);
 			pose.header.frame_id = m_map_frame;
 			pose.child_frame_id = m_odom_frame;
 			// compose data container
