@@ -71,6 +71,7 @@ public:
 		m_node_handle.param("constrain_threshold", m_constrain_threshold, 0.1);
 		m_node_handle.param("constrain_threshold_yaw", m_constrain_threshold_yaw, 0.2);
 		m_node_handle.param("transform_timeout", m_transform_timeout, 0.2);
+		m_node_handle.param("transform_tolerance", m_transform_tolerance, 0.1);
 
 		m_sub_scan_topic = m_node_handle.subscribe("/scan", 10, &NeoLocalizationNode::scan_callback, this);
 		m_sub_map_topic = m_node_handle.subscribe("/map", 1, &NeoLocalizationNode::map_callback, this);
@@ -321,7 +322,7 @@ protected:
 			m_offset_y += (new_offset[1] - m_offset_y) * m_update_gain;
 			m_offset_yaw += angles::shortest_angular_distance(m_offset_yaw, new_offset[2]) * m_update_gain;
 		}
-		m_offset_time = base_to_odom.stamp_;
+		m_offset_time = base_to_odom.stamp_ + ros::Duration(m_transform_tolerance); //add some tolerances so the localization is future dated
 
 		// update particle spread depending on mode
 		if(mode >= 3) {
@@ -569,7 +570,7 @@ protected:
 			// compose and publish transform for tf package
 			geometry_msgs::TransformStamped pose;
 			// compose header
-			pose.header.stamp = m_offset_time + ros::Duration(0.025);
+			pose.header.stamp = m_offset_time;
 			pose.header.frame_id = m_map_frame;
 			pose.child_frame_id = m_odom_frame;
 			// compose data container
@@ -627,6 +628,7 @@ private:
 	double m_loc_update_rate = 0;
 	double m_map_update_rate = 0;
 	double m_transform_timeout = 0;
+	double m_transform_tolerance = 0;
 
 	ros::Time m_offset_time;
 	double m_offset_x = 0;					// current x offset between odom and map
